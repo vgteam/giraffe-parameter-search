@@ -1,0 +1,33 @@
+
+
+
+reads_dir: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/reads"
+params_file: "hash_to_parameters.tsv"
+root: "/private/groups/patenlab/elewilso/long-read-giraffe-experiments/workflow_manager" 
+mapper: 
+
+
+experiment: map_hifi_10k
+gbz_graph: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.gbz"
+distance_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.dist"
+minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.withzip.min"
+zipfile: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.zipcodes" 
+sample: HG002
+realness: real
+tech: hifi 
+subset: 10k
+preset: hifi
+
+
+#name: r10y2025_experiment
+
+# "default" will generate graphs of parameters against speed(r/s/t) and clipped_or_unmapped
+# to create more graphs, write the name or names of stats you want to plot parameter values against
+
+desired_2d_graphs:
+  - speed
+  - clipped_or_unmapped
+  - accuracy_percent
+  
+desired_3d_graphs:
+  - [speed, clipped_or_unmapped]

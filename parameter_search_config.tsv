@@ -1,0 +1,2 @@
+#name	type	min_val	max_val	default	sampling_strategy
+max-graph-lookback-bases	int	5000	50000	20000	lognormal
