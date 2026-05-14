@@ -1,8 +1,8 @@
 # giraffe-parameter-search
 Workflow for testing vg giraffe parameters
 
->[WARNING!]
->This is currently broken at graphing stage.
+> [!WARNING]
+> This is currently broken at graphing stage.
 
 Config.yaml  
 Main snakefile 'Snakefile'  
