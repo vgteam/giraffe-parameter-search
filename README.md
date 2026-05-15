@@ -8,6 +8,9 @@ Graphing util 'scatter.py'
 Parameter search util 'parameter_search.py'
 Parameter search util config file parameter_search_config.tsv
 
+> [!WARNING]
+> Mapping quality associated statistics incorrect. 
+
 ## How To Use
 1. Edit `parameter_search_config.tsv` to contain the parameters you want to generate values for, and what way you want to generate them. See `parameter_search.py` for more information.
 2. Run:
