@@ -27,7 +27,8 @@ supported_statistics = ["mapped", "reads_correct", "accuracy_percent", "mapq60",
 # ============================
 
 PARAM_SEARCH = parameter_search.ParameterSearch() #function used for converting hashes to parameter strings
-EXPS = [config["experiment"]] 
+experiment = config["experiment"]
+exp_config = config["experiments"][experiment]
 
 params_df = pd.read_csv(config["params_file"], sep="\t", comment=None, index_col=0) #stores all information stored in params_file
 params_df.index = params_df.index.astype(str) # we reference hashes to fill in values, but hashes in {param_set} are strings
@@ -100,7 +101,7 @@ def auto_mapping_threads(wildcards):
     Choose the number of threads to use map reads, based on the subset.
     """
     mapping_threads = 0
-    number = numerical_subset(config["subset"])
+    number = numerical_subset(exp_config["subset"])
 
     if number > 100000:
         mapping_threads = MAPPER_THREADS
@@ -141,10 +142,10 @@ def find_fastq(tech):
     Maybe change this to match realness after making experiments for everything. 
     """
     directory = config["reads_dir"]
-    realness = config["realness"]
-    tech = config["tech"]
-    sample = config["sample"]
-    subset = config["subset"]
+    realness = exp_config["realness"]
+    tech = exp_config["tech"]
+    sample = exp_config["sample"]
+    subset = exp_config["subset"]
     if tech == "r10y2025":
         return (f"{directory}/{realness}/{tech}/{sample}/{sample}-{realness}-{tech}-{subset}.fq")
     if tech == "hifi":
@@ -161,9 +162,9 @@ def graph_names():
     filenames = []
     for x in X_VARS:
         for y in Y_VARS:
-            filenames.append(f"{config['root']}/results/{config['experiment']}/graphs/{config['tech']}.{config['sample']}.{config['subset']}.{x}_vs_{y}.png")
+            filenames.append(f"{config['root']}/results/{config['experiment']}/graphs/{exp_config['tech']}.{exp_config['sample']}.{exp_config['subset']}.{x}_vs_{y}.png")
         for y, z in YZ_VARS:
-            filenames.append(f"{config['root']}/results/{config['experiment']}/graphs/{config['tech']}.{config['sample']}.{config['subset']}.{x}_vs_{y}_vs_{z}.png")
+            filenames.append(f"{config['root']}/results/{config['experiment']}/graphs/{exp_config['tech']}.{exp_config['sample']}.{exp_config['subset']}.{x}_vs_{y}_vs_{z}.png")
     return filenames
 
 include: "make_graphs.smk"
@@ -179,7 +180,7 @@ rule all:
     """
     input:
         graph_names(),
-        expand("{root}/results/{experiment}/stats/{tech}.{sample}.{subset}.mapping_stats.tsv", root=config["root"], experiment=config["experiment"], tech=config["tech"], sample=config["sample"], subset=config["subset"])
+        expand("{root}/results/{experiment}/stats/{tech}.{sample}.{subset}.mapping_stats.tsv", root=config["root"], experiment=config["experiment"], tech=exp_config["tech"], sample=exp_config["sample"], subset=exp_config["subset"])
 
 # ============================
 # Alignment
@@ -190,11 +191,11 @@ rule giraffe_real_reads:
     Maps real reads with vg giraffe.
     """
     input:
-        gbz = config["gbz_graph"],
-        dist = config["distance_index"],
-        zipfile = config["zipfile"],
-        minindex = config["minimizer_index"],
-        fastq = find_fastq(config["tech"])
+        gbz = exp_config["gbz_graph"],
+        dist = exp_config["distance_index"],
+        zipfile = exp_config["zipfile"],
+        minindex = exp_config["minimizer_index"],
+        fastq = find_fastq(exp_config["tech"])
     output:
         "{root}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.real.{param_set}.gam"
     log: 
@@ -209,7 +210,7 @@ rule giraffe_real_reads:
         runtime=1200,
         slurm_partition=choose_partition(1200),
     params:
-        preset = config["preset"],
+        preset = exp_config["preset"],
         flags = lambda wildcards: expand(PARAM_SEARCH.hash_to_parameter_string(wildcards.param_set))
     run:
         # try block and if error throw exception print bottom of log block
@@ -220,10 +221,10 @@ rule giraffe_sim_reads:
     Maps simulated reads with vg giraffe. Used to calculate reads_correct.
     """
     input:
-        gbz = config["gbz_graph"],
-        dist = config["distance_index"],
-        zipfile = config["zipfile"],
-        minindex = config["minimizer_index"],
+        gbz = exp_config["gbz_graph"],
+        dist = exp_config["distance_index"],
+        zipfile = exp_config["zipfile"],
+        minindex = exp_config["minimizer_index"],
         gam= config["reads_dir"] + "/sim/{tech}/{sample}/{sample}-sim-{tech}-{subset}.gam"
     output:
         "{root}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.sim.{param_set}.gam"
@@ -237,7 +238,7 @@ rule giraffe_sim_reads:
         runtime=600,
         slurm_partition=choose_partition(600)
     params:
-        preset = config["preset"],
+        preset = exp_config["preset"],
         flags = lambda wildcards: expand(PARAM_SEARCH.hash_to_parameter_string(wildcards.param_set))
     run:
         shell("vg giraffe -t{threads} --progress --parameter-preset {params.preset} --track-provenance --set-refpos -Z {input.gbz} -d {input.dist} -m {input.minindex} -G {input.gam} -z {input.zipfile} {params.flags} --output-format gam >{output} 2>{log}")
@@ -250,7 +251,7 @@ rule compare_alignments:
         gam = "{root}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.sim.{param_set}.gam",
         truth_gam = lambda wildcards: expand(
             "{reads_dir}/sim/{tech}/{sample}/{sample}-sim-{tech}-{subset}.gam", 
-            reads_dir=config["reads_dir"], tech=wildcards.tech, sample=config["sample"], subset=wildcards.subset
+            reads_dir=config["reads_dir"], tech=wildcards.tech, sample=exp_config["sample"], subset=wildcards.subset
             )
     output:
         gam = temp("{root}/results/{experiment}/compared/{tech}.{sample}.{subset}.sim.{param_set}.gam"),
@@ -382,17 +383,12 @@ rule stats_tsv:
         df["mapped"] = mapped
 
         # count number of reads with mq=60
-        mapq60 = (filter_df["mapping_quality"] == 60).count()
+        mapq60 = (filter_df["mapping_quality"] == 60).sum()
         df["mapq60"] = mapq60
 
         # count number of reads with mq=60 which have correctness = incorrect
         wrong_mapq60 = (filter_df[filter_df["mapping_quality"] == 60]["correctness"] == "incorrect").sum()
         df["wrong_mapq60"] = wrong_mapq60
-
-
-        """with open(input.clipped_or_unmapped, "r") as f:
-            clipped_or_unmapped = f.read().strip()
-        df["clipped_or_unmapped"] = clipped_or_unmapped"""
 
         df.to_csv(output[0], sep="\t", index=True)
 
@@ -403,7 +399,7 @@ rule stats_tsv_aggregate:
     input: 
         lambda wildcards: expand(
             "{root}/results/{experiment}/stats/{tech}.{sample}.{subset}.{param_set}.mapping_stats.tsv", 
-            root=wildcards.root, experiment=EXPS, tech=wildcards.tech, sample=wildcards.sample, subset=wildcards.subset, param_set=PARAM_SETS
+            root=wildcards.root, experiment=wildcards.experiment, tech=wildcards.tech, sample=wildcards.sample, subset=wildcards.subset, param_set=PARAM_SETS
             )        
     output:
         "{root}/results/{experiment}/stats/{tech}.{sample}.{subset}.mapping_stats.tsv"
