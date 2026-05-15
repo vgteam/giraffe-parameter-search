@@ -27,8 +27,7 @@ Parameter search util config file parameter_search_config.tsv
     Replace map_hifi_10k with experiment of choice from config.
 
 ## TODO
-- Make graphing work (have snakefile correctly pass independent and dependent variable wildcards)
-- Add capability for more graphs
-- Add capability for more realness, tech, subset settings
+- Add capability for more types of graphs and statistics
+- Add capability for more realness, tech, subset settings via adding more experiment options
 - Add variant calling sub snakefile
 - Add more documentation (dedicated wiki)
