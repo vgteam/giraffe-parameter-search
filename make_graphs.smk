@@ -5,6 +5,14 @@ Requires running the main Snakefile to give it information on what to plot. You 
 Uses file scatter.py for plotting, which should be in the same directory as this file.
 """
 
+X_VARS_CONSTRAINT = "|".join(X_VARS)
+STAT_CONSTRAINT = "|".join(supported_statistics)
+
+wildcard_constraints:
+    x = X_VARS_CONSTRAINT,
+    y = STAT_CONSTRAINT,
+    z = STAT_CONSTRAINT
+
 rule scatter_2d:
     """
     Create a scatter plot with parameter values and ONE dependent stat variable.

@@ -45,9 +45,6 @@ for stat in Y_VARS + [stat for pair in YZ_VARS for stat in pair]:
     if stat not in supported_statistics:
         raise ValueError(f"Unsupported statistic '{stat}' in desired_graphs")
 
-print(f'X_VARS= {X_VARS}')
-print(f'Y_VARS= {Y_VARS}')
-print(f'YZ_VARS= {YZ_VARS}')
 
 # ============================
 # Define supported wildcard/config values

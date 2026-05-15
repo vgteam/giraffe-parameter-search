@@ -1,10 +1,8 @@
 # giraffe-parameter-search
 Workflow for testing vg giraffe parameters
 
-> [!WARNING]
-> This is currently broken at graphing stage.
 
-Config.yaml  
+Experiment config file config.yaml  
 Main snakefile 'Snakefile'  
 Sub-snakefile for graphing 'make_graphs.smk'  
 Graphing util 'scatter.py'  
