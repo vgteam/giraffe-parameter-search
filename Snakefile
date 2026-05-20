@@ -9,7 +9,7 @@ Workflow process sketch:
     - Rule giraffe_real_reads aligns reads according to config specification.
     - Rule stats_tsv creates a tsv for each parameter set of all statistics available from mapping. 
     - Rule stats_tsv_aggregate combines these into a single comprehensive tsv sorted by hash (includes parameter values).
-    - Additional included snakefile "make_graphs.smk" creates requested graphs using aggregate tsv.
+    - Additional included snakefile "make_plots.smk" creates requested graphs using aggregate tsv.
 """
 
 import parameter_search #file used for converting hashes to parameter strings
@@ -167,7 +167,7 @@ def graph_names():
             filenames.append(f"{config['root']}/results/{config['experiment']}/graphs/{exp_config['tech']}.{exp_config['sample']}.{exp_config['subset']}.{x}_vs_{y}_vs_{z}.png")
     return filenames
 
-include: "make_graphs.smk"
+include: "make_plots.smk"
 
 
 # ============================
