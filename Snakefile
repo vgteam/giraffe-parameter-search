@@ -18,14 +18,15 @@ import subprocess
 
 configfile: "snake_config.yaml"
 
-supported_statistics = ["mapped", "reads_correct", "accuracy_percent", "mapq60", "wrong_mapq60", "softclips", "clipped_or_unmapped", "speed", 
+supported_statistics = ["mapped", "reads_correct", "reads_incorrect", "accuracy_percent", "mapq60", "wrong_mapq60", "softclips", "clipped_or_unmapped", "speed", 
         "speed_from_log", "memory(GB)"]
 
 
-# ============================
-# Define macros for graphing 
-# ============================
+# =============================================
+# Define macros for stats collection and graphing 
+# =============================================
 
+# Parameters
 PARAM_SEARCH = parameter_search.ParameterSearch() #function used for converting hashes to parameter strings
 experiment = config["experiment"]
 exp_config = config["experiments"][experiment]
@@ -35,21 +36,37 @@ params_df.index = params_df.index.astype(str) # we reference hashes to fill in v
 PARAM_SETS = [str(hash) for hash in list(params_df.index)] #list of all parameter set hashes
 
 
+# Mapping tsv statistics
+STATS_INC = config["included_statistics"] # stats to include in mapping_stats.tsv
+if "all" in STATS_INC:
+    STATS_INC = supported_statistics
+STATS_EXC = config["excluded_statistics"] # stats to exclude in mapping_stats.tsv
+
+# check that the stats for mapping are something we can collect
+for stat in STATS_INC:
+    if stat not in supported_statistics:
+        raise ValueError(f"Unsupported statistic '{a}' in included_statistics")
+
+for stat in STATS_EXC:
+    if stat not in supported_statistics:
+        raise ValueError(f"Unsupported statistic '{b}' in excluded_statistics")
+
+
+# Graphing statistics
 X_VARS = params_df.columns.tolist() # names of parameters tested
 Y_VARS = config["desired_2d_graphs"] # y-variables for 2d plots
 YZ_VARS = config["desired_3d_graphs"] # lists of y and z variables for 3d plots
-
-
 
 # check that the stats in the requested graphs are something we can collect
 for stat in Y_VARS + [stat for pair in YZ_VARS for stat in pair]:
     if stat not in supported_statistics:
         raise ValueError(f"Unsupported statistic '{stat}' in desired_graphs")
+    if stat in STATS_EXC:
+        raise ValueError(f"A statistic ('{stat}') cannot be in excluded_statistics but also in desired_graphs")
 
-
-# ============================
+# =============================================
 # Define supported wildcard/config values
-# ============================
+# =============================================
 
 wildcard_constraints:
     sample = "HG002",
@@ -59,9 +76,9 @@ wildcard_constraints:
     preset = "hifi|r10",
     root = re.escape(config["root"])
 
-# ============================
+# =============================================
 # Slurm and memory management utilities
-# ============================
+# =============================================
 
 MAPPER_THREADS = 64 #default threads for mapping
 SLURM_PARTITIONS = [ 
@@ -132,9 +149,9 @@ def auto_mapping_memory(wildcards):
     # Scale down memory with threads
     return scale_mb / 64 * thread_count + base_mb
 
-# ============================
+# =============================================
 # File utilities
-# ============================
+# =============================================
 
 def find_fastq(tech):
     """
@@ -170,9 +187,9 @@ def graph_names():
 include: "make_plots.smk"
 
 
-# ============================
+# =============================================
 # Rules- the meat
-# ============================
+# =============================================
 
 rule all:
     """
@@ -182,9 +199,9 @@ rule all:
         graph_names(),
         expand("{root}/results/{experiment}/stats/{tech}.{sample}.{subset}.mapping_stats.tsv", root=config["root"], experiment=config["experiment"], tech=exp_config["tech"], sample=exp_config["sample"], subset=exp_config["subset"])
 
-# ============================
+# =============================================
 # Alignment
-# ============================
+# =============================================
 
 rule giraffe_real_reads:
     """
@@ -214,7 +231,15 @@ rule giraffe_real_reads:
         flags = lambda wildcards: expand(PARAM_SEARCH.hash_to_parameter_string(wildcards.param_set))
     run:
         # try block and if error throw exception print bottom of log block
-        shell("vg giraffe -t{threads} --progress --parameter-preset {params.preset} -Z {input.gbz} -d {input.dist} -m {input.minindex} -f {input.fastq} -z {input.zipfile} {params.flags} --output-format gam >{output} 2>{log}")
+        try:
+            shell("vg giraffe -t{threads} --progress --parameter-preset {params.preset} -Z {input.gbz} -d {input.dist} -m {input.minindex} -f {input.fastq} -z {input.zipfile} {params.flags} --output-format gam >{output} 2>{log}")
+        except Exception as e:
+            # print bottom 10 lines of log block
+            with open(log[0], 'r') as f:
+                lines = f.readlines()
+                tail = "".join(lines[-10:])
+            raise Exception(f"vg giraffe command failed for {params.flags}:\n{tail}") from e
+
 
 rule giraffe_sim_reads:
     """
@@ -241,11 +266,25 @@ rule giraffe_sim_reads:
         preset = exp_config["preset"],
         flags = lambda wildcards: expand(PARAM_SEARCH.hash_to_parameter_string(wildcards.param_set))
     run:
-        shell("vg giraffe -t{threads} --progress --parameter-preset {params.preset} --track-provenance --set-refpos -Z {input.gbz} -d {input.dist} -m {input.minindex} -G {input.gam} -z {input.zipfile} {params.flags} --output-format gam >{output} 2>{log}")
+        try:
+            shell("vg giraffe -t{threads} --progress --parameter-preset {params.preset} --track-provenance --set-refpos -Z {input.gbz} -d {input.dist} -m {input.minindex} -G {input.gam} -z {input.zipfile} {params.flags} --output-format gam >{output} 2>{log}")
+        except Exception as e:
+            # print bottom 10 lines of log block
+            with open(log[0], 'r') as f:
+                lines = f.readlines()
+                tail = "".join(lines[-10:])
+            raise Exception(f"vg giraffe command failed for {params.flags}:\n{tail}") from e
+
+# =============================================
+# Statistics
+# =============================================
 
 rule compare_alignments:
     """
-    Run vg gamcompare on sim alignment gam and reference gam to generate txt file with number of correct reads.
+    Run vg gamcompare on sim alignment gam and reference gam.
+    This generates:
+        - a txt file with number of correct reads used in stats_tsv
+        - an annotated gam file used in vg_filter
     """
     input:
         gam = "{root}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.sim.{param_set}.gam",
@@ -254,9 +293,9 @@ rule compare_alignments:
             reads_dir=config["reads_dir"], tech=wildcards.tech, sample=exp_config["sample"], subset=wildcards.subset
             )
     output:
-        gam = temp("{root}/results/{experiment}/compared/{tech}.{sample}.{subset}.sim.{param_set}.gam"),
-        tsv = temp("{root}/results/{experiment}/compared/{tech}.{sample}.{subset}.sim.{param_set}.compared.tsv"),
-        compare = temp("{root}/results/{experiment}/compared/{tech}.{sample}.{subset}.sim.{param_set}.compare.txt")
+        gam = "{root}/results/{experiment}/compared/{tech}.{sample}.{subset}.sim.{param_set}.compared.gam",
+        tsv = "{root}/results/{experiment}/compared/{tech}.{sample}.{subset}.sim.{param_set}.compared.tsv",
+        compare = "{root}/results/{experiment}/compared/{tech}.{sample}.{subset}.sim.{param_set}.compare.txt"
     params:
         # In the v2.0 CHM13-based graphs we now use a non-HG002 Y, and that's where our
         # Y truth positions are. For other graphs (like v2 prerelease 3 or v1.1) we won't
@@ -277,21 +316,18 @@ rule compare_alignments:
             shell("vg gamcompare --threads 16 --range 200 {params.ignore_flag} {input.gam} {input.truth_gam} --output-gam {output.gam} -T > {output.tsv} 2>{output.compare}")
         except subprocess.CalledProcessError as error:
             with open(log[0]) as f:
-                log_tail = f.readlines()[-20:] #grab last 20 lines of log file and print
+                log_tail = f.readlines()[-10:] #grab last 10 lines of log file and print
             raise RuntimeError(f"command 'vg gamcompare' failed with exit code {error.returncode}.") from error
 
 
-# ============================
-# Clipped_or_unmapped statistic
-# ============================
-
 rule vg_filter:
     """
-    Run vg filter on real alignment gam files to generate tsvs with name, score, correctness,
-    softclip_total, identity, mapping_quality, length.
+    Run vg filter on compared alignment gam files.
+    This generates:
+        - a tsv with name, score, correctness, softclip_total, identity, mapping_quality, and length used in stats_tsv
     """
     input: 
-        gam = "{root}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.real.{param_set}.gam"
+        gam = "{root}/results/{experiment}/compared/{tech}.{sample}.{subset}.sim.{param_set}.compared.gam"
     output:
         tsv = "{root}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.{param_set}.vg_filter_stats.tsv"
     threads: 1
@@ -304,7 +340,9 @@ rule vg_filter:
 
 rule vg_stats:
     """
-    Run vg stats on real alignment gam files to generate txt file with alignment score, mapping quality, and speed.
+    Run vg stats on real alignment gam files.
+    This generates:
+        - a txt file with alignment score, mapping quality, and speed used in stats_tsv
     """
     input: 
         gam = "{root}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.real.{param_set}.gam"
@@ -341,16 +379,20 @@ rule stats_tsv:
     run:
         # copy from df with all paramter hashes and values, but only the row with our current parameter set
         df = params_df.loc[[wildcards.param_set]].copy()
-        # add headers for stats
-        df[supported_statistics] = -1 
+        # add headers for included stats
+        df[STATS_INC] = -1 
+        # remove columns of excluded stats
+        df = df.drop(columns=STATS_EXC)
 
         # get speed_from_log, memory from log file
         with open(input.mapping_log, "r") as f:
             text = f.read()
-        speed = float(re.search(r"Mapping speed:\s+([\d.]+)\s+reads per second per thread", text).group(1))
-        memory = float(re.search(r"Memory footprint:\s+([\d.]+)\s+GB", text).group(1))
-        df["speed_from_log"] = round(speed, 2)
-        df["memory(GB)"] = round(memory, 2)
+        if "speed_from_log" in STATS_INC:
+            speed = float(re.search(r"Mapping speed:\s+([\d.]+)\s+reads per second per thread", text).group(1))
+            df["speed_from_log"] = round(speed, 2)
+        if "memory(GB)" in STATS_INC:
+            memory= float(re.search(r"Memory footprint:\s+([\d.]+)\s+GB", text).group(1))
+            df["memory(GB)"] = round(memory, 2)
 
         # get speed(r/p/s) from vg stats file
         with open(input.vg_stats, "r") as f:
@@ -368,7 +410,10 @@ rule stats_tsv:
         
         #get softclips, clipped_or_unmapped, mapped, mapq60, and wrong_mapq60 from vg filter file
         filter_df = pd.read_csv(input.vg_filter, sep='\t')
-   
+
+        reads_incorrect = (filter_df["correctness"] == "incorrect").sum()
+        df["reads_incorrect"] = reads_incorrect
+
         # get from softclip_total
         softclips = filter_df["softclip_total"].sum()
         df["softclips"] = softclips

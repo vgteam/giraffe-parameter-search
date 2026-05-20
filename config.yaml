@@ -1,33 +1,74 @@
-
-
-
 reads_dir: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/reads"
 params_file: "hash_to_parameters.tsv"
-root: "/private/groups/patenlab/elewilso/long-read-giraffe-experiments/workflow_manager" 
+root: "/private/groups/patenlab/elewilso/giraffe-parameter-search" 
 mapper: 
 
 
-experiment: map_hifi_10k
-gbz_graph: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.gbz"
-distance_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.dist"
-minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.withzip.min"
-zipfile: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.zipcodes" 
-sample: HG002
-realness: real
-tech: hifi 
-subset: 10k
-preset: hifi
+experiments:
+
+  map_hifi_10k:
+    gbz_graph: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.gbz"
+    distance_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.dist"
+    minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.withzip.min"
+    zipfile: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.zipcodes" 
+    sample: HG002
+    realness: real
+    tech: hifi 
+    subset: 10k
+    preset: hifi
+
+  map_hifi_100k:
+    gbz_graph: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.gbz"
+    distance_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.dist"
+    minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.withzip.min"
+    zipfile: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.zipcodes" 
+    sample: HG002
+    realness: real
+    tech: hifi 
+    subset: 100k
+    preset: hifi
+
+  map_hifi_100k:
+    gbz_graph: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.gbz"
+    distance_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.dist"
+    minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.withzip.min"
+    zipfile: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.zipcodes" 
+    sample: HG002
+    realness: real
+    tech: hifi 
+    subset: 1m
+    preset: hifi
+
+  map_custom:
+    gbz_graph: 
+    distance_index: 
+    minimizer_index: 
+    zipfile: 
+    sample: 
+    realness: 
+    tech:  
+    subset: 
+    preset: 
 
 
-#name: r10y2025_experiment
+# write the names of stats you want to record in the output tsv (mapping_stats.tsv).
+# list of supported statistics are under supported_stats in the Snakefile.
+# to automatically record all available, you can write "all"
+included_statistics:
+  - all
 
-# "default" will generate graphs of parameters against speed(r/s/t) and clipped_or_unmapped
-# to create more graphs, write the name or names of stats you want to plot parameter values against
+# write the names of stats you want to exclude from the output tsv.
+# helpful if you want most stats ('all' in included_statistics) except a few. 
+excluded_statistics:
+  - speed
+
+
+# to create graphs, write the name or names of stats you want to plot parameter values against.
+# list of supported statistics are under supported_stats in the Snakefile.
 
 desired_2d_graphs:
-  - speed
   - clipped_or_unmapped
-  - accuracy_percent
+  - reads_incorrect
   
 desired_3d_graphs:
-  - [speed, clipped_or_unmapped]
+  - [speed_from_log, clipped_or_unmapped]

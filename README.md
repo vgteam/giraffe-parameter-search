@@ -8,8 +8,8 @@ Graphing util 'scatter.py'
 Parameter search util 'parameter_search.py'
 Parameter search util config file parameter_search_config.tsv
 
-> [!WARNING]
-> Mapping quality associated statistics incorrect. 
+> [!NOTE]
+> No known issues. 
 
 ## How To Use
 1. Edit `parameter_search_config.tsv` to contain the parameters you want to generate values for, and what way you want to generate them. See `parameter_search.py` for more information.
@@ -18,7 +18,7 @@ Parameter search util config file parameter_search_config.tsv
     python3 parameter_search.py --count x
     ```
     This will create the `hash_to_parameters` file.
-3. Specify the graphs you want to generate in `config.yaml`.  
+3. Specify the statistics you want to measure and graphs you want to generate in `config.yaml`.  
 3. Run:
 
     ```
