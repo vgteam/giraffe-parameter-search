@@ -397,43 +397,52 @@ rule stats_tsv:
         # get speed(r/p/s) from vg stats file
         with open(input.vg_stats, "r") as f:
             text = f.read()
-        speed = float(re.search(r"Speed:\s+([\d.]+)\s+reads/second", text).group(1))
-        df["speed"] = round(speed, 2)
+        if "speed" in STATS_INC:
+            speed = float(re.search(r"Speed:\s+([\d.]+)\s+reads/second", text).group(1))
+            df["speed"] = round(speed, 2)
 
         # get reads_correct and accuracy_percent from compare file
         with open(input.gamcompare, "r") as f:
             text = f.read()
-        reads_correct = int(re.search(r"([\d,]+)\s+reads correct", text).group(1).replace(",", ""))
-        accuracy_percent = float(re.search(r"([\d.]+)%\s+accuracy", text).group(1))
-        df["reads_correct"] = reads_correct
-        df["accuracy_percent"] = accuracy_percent
+        if "reads_correct" in STATS_INC:
+            reads_correct = int(re.search(r"([\d,]+)\s+reads correct", text).group(1).replace(",", ""))
+            df["reads_correct"] = reads_correct
+        if "accuracy_percent" in STATS_INC:
+            accuracy_percent = float(re.search(r"([\d.]+)%\s+accuracy", text).group(1))
+            df["accuracy_percent"] = accuracy_percent
         
         #get softclips, clipped_or_unmapped, mapped, mapq60, and wrong_mapq60 from vg filter file
         filter_df = pd.read_csv(input.vg_filter, sep='\t')
 
-        reads_incorrect = (filter_df["correctness"] == "incorrect").sum()
-        df["reads_incorrect"] = reads_incorrect
+        if "reads_incorrect" in STATS_INC:
+            reads_incorrect = (filter_df["correctness"] == "incorrect").sum()
+            df["reads_incorrect"] = reads_incorrect
 
         # get from softclip_total
-        softclips = filter_df["softclip_total"].sum()
-        df["softclips"] = softclips
+        if "softclips" in STATS_INC:
+            softclips = filter_df["softclip_total"].sum()
+            df["softclips"] = softclips
 
         # look for read names where read is unmapped (score = 0), add those lengths
         # add softclips
-        clipped_or_unmapped = (filter_df[filter_df["score"] == 0]["length"].sum()) + softclips
-        df["clipped_or_unmapped"] = clipped_or_unmapped
+        if "clipped_or_unmapped" in STATS_INC:
+            clipped_or_unmapped = (filter_df[filter_df["score"] == 0]["length"].sum()) + softclips
+            df["clipped_or_unmapped"] = clipped_or_unmapped
 
         # unmapped reads have score=0
-        mapped = (filter_df["score"] != 0).sum()
-        df["mapped"] = mapped
+        if "mapped" in STATS_INC:
+            mapped = (filter_df["score"] != 0).sum()
+            df["mapped"] = mapped
 
         # count number of reads with mq=60
-        mapq60 = (filter_df["mapping_quality"] == 60).sum()
-        df["mapq60"] = mapq60
+        if "mapq60" in STATS_INC:
+            mapq60 = (filter_df["mapping_quality"] == 60).sum()
+            df["mapq60"] = mapq60
 
         # count number of reads with mq=60 which have correctness = incorrect
-        wrong_mapq60 = (filter_df[filter_df["mapping_quality"] == 60]["correctness"] == "incorrect").sum()
-        df["wrong_mapq60"] = wrong_mapq60
+        if "wrong_mapq60" in STATS_INC:    
+            wrong_mapq60 = (filter_df[filter_df["mapping_quality"] == 60]["correctness"] == "incorrect").sum()
+            df["wrong_mapq60"] = wrong_mapq60
 
         df.to_csv(output[0], sep="\t", index=True)
 
