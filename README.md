@@ -27,7 +27,9 @@ Parameter search util config file parameter_search_config.tsv
     Replace map_hifi_10k with experiment of choice from config.
 
 ## TODO
-- Add capability for more types of graphs and statistics
+- Add mismapped statistic
+- Add match_bp statistic
+- Change output directory to current directory by default 
 - Add capability for more realness, tech, subset settings via adding more experiment options
 - Add variant calling sub snakefile
 - Add more documentation (dedicated wiki)
