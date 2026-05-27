@@ -158,17 +158,21 @@ def find_fastq(tech):
     Determine .fq reference file for mapping based on realness, tech, sample, and subset.
     Maybe change this to match realness after making experiments for everything. 
     """
-    directory = config["reads_dir"]
-    realness = exp_config["realness"]
-    tech = exp_config["tech"]
-    sample = exp_config["sample"]
-    subset = exp_config["subset"]
-    if tech == "r10y2025":
-        return (f"{directory}/{realness}/{tech}/{sample}/{sample}-{realness}-{tech}-{subset}.fq")
-    if tech == "hifi":
-        return (f"{directory}/{realness}/{tech}/{sample}/HG002Revio_hg002v1.0.1_hifi_revio_pbmay24.pri.unshuffled.{subset}.fq")
+    reference = config.get("reference", None)
+    if reference:
+        return reference
     else:
-        raise ValueError(f"Unsupported tech: {tech}")
+        directory = config["reads_dir"]
+        realness = exp_config["realness"]
+        tech = exp_config["tech"]
+        sample = exp_config["sample"]
+        subset = exp_config["subset"]
+        if tech == "r10y2025":
+            return (f"{directory}/{realness}/{tech}/{sample}/{sample}-{realness}-{tech}-{subset}.fq")
+        if tech == "hifi":
+            return (f"{directory}/{realness}/{tech}/{sample}/HG002Revio_hg002v1.0.1_hifi_revio_pbmay24.pri.unshuffled.{subset}.fq")
+        else:
+            raise ValueError(f"Unsupported tech: {tech}")
 
 
 def graph_names():

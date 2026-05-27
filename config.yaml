@@ -40,6 +40,7 @@ experiments:
     preset: hifi
 
   map_custom:
+    reference: 
     gbz_graph: 
     distance_index: 
     minimizer_index: 
