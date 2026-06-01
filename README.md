@@ -9,7 +9,7 @@ Parameter search util 'parameter_search.py'
 Parameter search util config file parameter_search_config.tsv
 
 > [!NOTE]
-> No known issues. 
+> **for more information, visit the Wiki tab.** 
 
 ## How To Use
 1. Edit `parameter_search_config.tsv` to contain the parameters you want to generate values for, and what way you want to generate them. See `parameter_search.py` for more information.
