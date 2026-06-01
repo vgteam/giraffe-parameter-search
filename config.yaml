@@ -1,9 +1,13 @@
+# Config file for parameter search workflow.
+# Please read 'Customizing the config' wiki page on github for more information.
+# Link: 
+
 reads_dir: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/reads"
 temp_dir: "/data/tmp/elewilso"
 params_file: "hash_to_parameters.tsv"
 # output directory: where your results will be generated
 # to use the current directory, leave it empty
-output: #"/private/groups/patenlab/elewilso/giraffe-parameter-search" 
+output: 
 mapper: 
 
 
@@ -12,7 +16,7 @@ experiments:
   map_hifi_1k:
     gbz_graph: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.gbz"
     distance_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.dist"
-    minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.withzip.min"
+    minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.path.min"
     zipfile: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.zipcodes" 
     sample: HG002
     realness: real
@@ -23,7 +27,7 @@ experiments:
   map_hifi_10k:
     gbz_graph: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.gbz"
     distance_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.dist"
-    minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.withzip.min"
+    minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.path.min"
     zipfile: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.zipcodes" 
     sample: HG002
     realness: real
@@ -34,7 +38,7 @@ experiments:
   map_hifi_100k:
     gbz_graph: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.gbz"
     distance_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.dist"
-    minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.withzip.min"
+    minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.path.min"
     zipfile: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.zipcodes" 
     sample: HG002
     realness: real
@@ -45,13 +49,57 @@ experiments:
   map_hifi_1m:
     gbz_graph: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.gbz"
     distance_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.dist"
-    minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.withzip.min"
+    minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.path.min"
     zipfile: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.zipcodes" 
     sample: HG002
     realness: real
     tech: hifi 
     subset: 1m
     preset: hifi
+
+  map_r10y2025_1k:
+    gbz_graph: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-r10y2025-HG002-full.gbz"
+    distance_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-r10y2025-HG002-full.dist"
+    minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-r10y2025-HG002-full.k31.w50.W.path.min"
+    zipfile: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-r10y2025-HG002-full.k31.w50.W.path.zipcodes" 
+    sample: HG002
+    realness: real
+    tech: r10y2025 
+    subset: 1k
+    preset: r10
+
+  map_r10y2025_10k:
+    gbz_graph: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-r10y2025-HG002-full.gbz"
+    distance_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-r10y2025-HG002-full.dist"
+    minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-r10y2025-HG002-full.k31.w50.W.path.min"
+    zipfile: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-r10y2025-HG002-full.k31.w50.W.path.zipcodes" 
+    sample: HG002
+    realness: real
+    tech: r10y2025 
+    subset: 10k
+    preset: r10
+    
+  map_r10y2025_100k:
+    gbz_graph: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-r10y2025-HG002-full.gbz"
+    distance_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-r10y2025-HG002-full.dist"
+    minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-r10y2025-HG002-full.k31.w50.W.path.min"
+    zipfile: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-r10y2025-HG002-full.k31.w50.W.path.zipcodes" 
+    sample: HG002
+    realness: real
+    tech: r10y2025 
+    subset: 100k
+    preset: r10
+
+  map_r10y2025_1m:
+    gbz_graph: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-r10y2025-HG002-full.gbz"
+    distance_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-r10y2025-HG002-full.dist"
+    minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-r10y2025-HG002-full.k31.w50.W.path.min"
+    zipfile: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-r10y2025-HG002-full.k31.w50.W.path.zipcodes" 
+    sample: HG002
+    realness: real
+    tech: r10y2025 
+    subset: 1m
+    preset: r10
 
   map_custom:
     reference: 

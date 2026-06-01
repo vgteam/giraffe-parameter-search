@@ -161,7 +161,6 @@ def auto_mapping_memory(wildcards):
 def find_fastq(tech):
     """
     Determine .fq reference file for mapping based on realness, tech, sample, and subset.
-    Maybe change this to match realness after making experiments for everything. 
     """
     reference = config.get("reference", None)
     if reference:
@@ -173,7 +172,7 @@ def find_fastq(tech):
         sample = exp_config["sample"]
         subset = exp_config["subset"]
         if tech == "r10y2025":
-            return (f"{directory}/{realness}/{tech}/{sample}/{sample}-{realness}-{tech}-{subset}.fq")
+            return (f"{directory}/{realness}/{tech}/{sample}/HG002_PAW70337.{subset}.fq")
         if tech == "hifi":
             return (f"{directory}/{realness}/{tech}/{sample}/HG002Revio_hg002v1.0.1_hifi_revio_pbmay24.pri.unshuffled.{subset}.fq")
         else:
