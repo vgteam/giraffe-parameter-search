@@ -66,6 +66,9 @@ for stat in Y_VARS + [stat for pair in YZ_VARS for stat in pair]:
     if stat in STATS_EXC:
         raise ValueError(f"A statistic ('{stat}') cannot be in excluded_statistics but also in desired_graphs")
 
+# see if we have an output directory specified, otherwise use current directory
+config["output"] = config.get("output") or os.getcwd()
+
 # =============================================
 # Define supported wildcard/config values
 # =============================================
@@ -76,7 +79,7 @@ wildcard_constraints:
     tech = "hifi|r10y2025",
     subset = "1k|10k|100k|1m",
     preset = "hifi|r10",
-    root = re.escape(config["root"])
+    output = re.escape(config["output"])
 
 # =============================================
 # Slurm and memory management utilities
@@ -185,9 +188,9 @@ def graph_names():
     filenames = []
     for x in X_VARS:
         for y in Y_VARS:
-            filenames.append(f"{config['root']}/results/{config['experiment']}/graphs/{exp_config['tech']}.{exp_config['sample']}.{exp_config['subset']}.{x}_vs_{y}.png")
+            filenames.append(f"{config['output']}/results/{config['experiment']}/graphs/{exp_config['tech']}.{exp_config['sample']}.{exp_config['subset']}.{x}_vs_{y}.png")
         for y, z in YZ_VARS:
-            filenames.append(f"{config['root']}/results/{config['experiment']}/graphs/{exp_config['tech']}.{exp_config['sample']}.{exp_config['subset']}.{x}_vs_{y}_vs_{z}.png")
+            filenames.append(f"{config['output']}/results/{config['experiment']}/graphs/{exp_config['tech']}.{exp_config['sample']}.{exp_config['subset']}.{x}_vs_{y}_vs_{z}.png")
     return filenames
 
 include: "make_plots.smk"
@@ -202,8 +205,8 @@ rule all:
     Final list of files requested. Snakemake looks here first when running the snakefile. 
     """
     input:
-        expand("{root}/results/{experiment}/stats/manifest.yaml", root=config["root"], experiment=config["experiment"]),
-        expand("{root}/results/{experiment}/stats/{tech}.{sample}.{subset}.mapping_stats.tsv", root=config["root"], experiment=config["experiment"], tech=exp_config["tech"], sample=exp_config["sample"], subset=exp_config["subset"]),
+        expand("{output}/results/{experiment}/stats/manifest.yaml", output=config["output"], experiment=config["experiment"]),
+        expand("{output}/results/{experiment}/stats/{tech}.{sample}.{subset}.mapping_stats.tsv", output=config["output"], experiment=config["experiment"], tech=exp_config["tech"], sample=exp_config["sample"], subset=exp_config["subset"]),
         graph_names()
 
 rule manifest:
@@ -211,7 +214,7 @@ rule manifest:
     Generates run/experiment manifest with wildcards and run information.
     """
     output:
-        yaml = "{root}/results/{experiment}/stats/manifest.yaml"
+        yaml = "{output}/results/{experiment}/stats/manifest.yaml"
     run:
         manifest = {
             "timestamp": datetime.datetime.now().isoformat(timespec='seconds'),
@@ -239,13 +242,13 @@ rule giraffe_real_reads:
         minindex = exp_config["minimizer_index"],
         fastq = find_fastq(exp_config["tech"])
     output:
-        "{root}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.real.{param_set}.gam"
+        "{output}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.real.{param_set}.gam"
     log: 
-        "{root}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.real.{param_set}.log"
+        "{output}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.real.{param_set}.log"
     wildcard_constraints:
         realness="real"
     benchmark: 
-        "{root}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.real.{param_set}.benchmark"
+        "{output}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.real.{param_set}.benchmark"
     threads: auto_mapping_threads
     resources:
         mem_mb=auto_mapping_memory,
@@ -277,9 +280,9 @@ rule giraffe_sim_reads:
         minindex = exp_config["minimizer_index"],
         gam= config["reads_dir"] + "/sim/{tech}/{sample}/{sample}-sim-{tech}-{subset}.gam"
     output:
-        "{root}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.sim.{param_set}.gam"
+        "{output}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.sim.{param_set}.gam"
     log:
-        "{root}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.sim.{param_set}.log"
+        "{output}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.sim.{param_set}.log"
     wildcard_constraints:
         realness="sim"
     threads: auto_mapping_threads
@@ -312,15 +315,15 @@ rule compare_alignments:
         - an annotated gam file used in vg_filter
     """
     input:
-        gam = "{root}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.sim.{param_set}.gam",
+        gam = "{output}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.sim.{param_set}.gam",
         truth_gam = lambda wildcards: expand(
             "{reads_dir}/sim/{tech}/{sample}/{sample}-sim-{tech}-{subset}.gam", 
             reads_dir=config["reads_dir"], tech=wildcards.tech, sample=exp_config["sample"], subset=wildcards.subset
             )
     output:
-        gam = "{root}/results/{experiment}/compared/{tech}.{sample}.{subset}.sim.{param_set}.compared.gam",
-        tsv = "{root}/results/{experiment}/compared/{tech}.{sample}.{subset}.sim.{param_set}.compared.tsv",
-        compare = "{root}/results/{experiment}/compared/{tech}.{sample}.{subset}.sim.{param_set}.compare.txt"
+        gam = "{output}/results/{experiment}/compared/{tech}.{sample}.{subset}.sim.{param_set}.compared.gam",
+        tsv = "{output}/results/{experiment}/compared/{tech}.{sample}.{subset}.sim.{param_set}.compared.tsv",
+        compare = "{output}/results/{experiment}/compared/{tech}.{sample}.{subset}.sim.{param_set}.compare.txt"
     params:
         # In the v2.0 CHM13-based graphs we now use a non-HG002 Y, and that's where our
         # Y truth positions are. For other graphs (like v2 prerelease 3 or v1.1) we won't
@@ -352,9 +355,9 @@ rule vg_filter:
         - a tsv with name, score, correctness, softclip_total, identity, mapping_quality, and length used in stats_tsv
     """
     input: 
-        gam = "{root}/results/{experiment}/compared/{tech}.{sample}.{subset}.sim.{param_set}.compared.gam"
+        gam = "{output}/results/{experiment}/compared/{tech}.{sample}.{subset}.sim.{param_set}.compared.gam"
     output:
-        tsv = "{root}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.{param_set}.vg_filter_stats.tsv"
+        tsv = "{output}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.{param_set}.vg_filter_stats.tsv"
     threads: 1
     resources:
         mem_mb=2000,
@@ -370,9 +373,9 @@ rule vg_stats:
         - a txt file with alignment score, mapping quality, and speed used in stats_tsv
     """
     input: 
-        gam = "{root}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.real.{param_set}.gam"
+        gam = "{output}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.real.{param_set}.gam"
     output:
-        txt = "{root}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.real.{param_set}.gamstats.txt"
+        txt = "{output}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.real.{param_set}.gamstats.txt"
     threads: 1
     resources:
         mem_mb=2000,
@@ -394,12 +397,12 @@ rule stats_tsv:
     3. add a regex search for it in this rule and add it to the dataframe (header automatically includes it.)
     """
     input:
-        mapping_log = "{root}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.real.{param_set}.log",
-        vg_stats = "{root}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.real.{param_set}.gamstats.txt",
-        gamcompare = "{root}/results/{experiment}/compared/{tech}.{sample}.{subset}.sim.{param_set}.compare.txt",
-        vg_filter = "{root}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.{param_set}.vg_filter_stats.tsv"
+        mapping_log = "{output}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.real.{param_set}.log",
+        vg_stats = "{output}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.real.{param_set}.gamstats.txt",
+        gamcompare = "{output}/results/{experiment}/compared/{tech}.{sample}.{subset}.sim.{param_set}.compare.txt",
+        vg_filter = "{output}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.{param_set}.vg_filter_stats.tsv"
     output:
-        temp("{root}/results/{experiment}/stats/{tech}.{sample}.{subset}.{param_set}.mapping_stats.tsv")
+        temp("{output}/results/{experiment}/stats/{tech}.{sample}.{subset}.{param_set}.mapping_stats.tsv")
     threads: 1
     resources:
         mem_mb=2000,
@@ -487,21 +490,11 @@ rule stats_tsv_aggregate:
     """
     input: 
         lambda wildcards: expand(
-            "{root}/results/{experiment}/stats/{tech}.{sample}.{subset}.{param_set}.mapping_stats.tsv", 
-            root=wildcards.root, experiment=wildcards.experiment, tech=wildcards.tech, sample=wildcards.sample, subset=wildcards.subset, param_set=PARAM_SETS
+            "{output}/results/{experiment}/stats/{tech}.{sample}.{subset}.{param_set}.mapping_stats.tsv", 
+            output=wildcards.output, experiment=wildcards.experiment, tech=wildcards.tech, sample=wildcards.sample, subset=wildcards.subset, param_set=PARAM_SETS
             )        
     output:
-        "{root}/results/{experiment}/stats/{tech}.{sample}.{subset}.mapping_stats.tsv"
+        "{output}/results/{experiment}/stats/{tech}.{sample}.{subset}.mapping_stats.tsv"
     run:
         dfs = [pd.read_csv(f, sep="\t", index_col=0) for f in input]
         pd.concat(dfs).to_csv(output[0], sep="\t", index=True)
-
-
-"""
-rule save_results:
-    
-    Saves graphs, mapping stats tsv, parameter search config
-    
-    input:
-        path = config["results_path"]
-"""

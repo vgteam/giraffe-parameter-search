@@ -28,7 +28,6 @@ Parameter search util config file parameter_search_config.tsv
 
 ## TODO
 - Add mismapped statistic
-- Change output directory to current directory by default 
 - Add capability for more realness, tech, subset settings via adding more experiment options
 - Add variant calling sub snakefile
 - Add more documentation (dedicated wiki)

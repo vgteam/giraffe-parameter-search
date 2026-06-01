@@ -1,10 +1,24 @@
 reads_dir: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/reads"
+temp_dir: "/data/tmp/elewilso"
 params_file: "hash_to_parameters.tsv"
-root: "/private/groups/patenlab/elewilso/giraffe-parameter-search" 
+# output directory: where your results will be generated
+# to use the current directory, leave it empty
+output: #"/private/groups/patenlab/elewilso/giraffe-parameter-search" 
 mapper: 
 
 
 experiments:
+
+  map_hifi_1k:
+    gbz_graph: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.gbz"
+    distance_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.dist"
+    minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.withzip.min"
+    zipfile: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.zipcodes" 
+    sample: HG002
+    realness: real
+    tech: hifi 
+    subset: 1k
+    preset: hifi
 
   map_hifi_10k:
     gbz_graph: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.gbz"
@@ -28,7 +42,7 @@ experiments:
     subset: 100k
     preset: hifi
 
-  map_hifi_100k:
+  map_hifi_1m:
     gbz_graph: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.gbz"
     distance_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.dist"
     minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.withzip.min"
