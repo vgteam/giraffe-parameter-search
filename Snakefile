@@ -359,7 +359,7 @@ rule vg_filter:
         tsv = "{output}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.{param_set}.vg_filter_stats.tsv"
     threads: 1
     resources:
-        mem_mb=2000,
+        mem_mb=3000,
         runtime=100,
         slurm_partition=choose_partition(100)
     shell:
