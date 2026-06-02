@@ -267,9 +267,9 @@ def main():
     parser.add_argument('--config_file', default=CONFIG_FILE, help="Config file for which parameters to sample and how") 
     parser.add_argument('--output_file', default=HASH_TO_PARAMETERS_FILE, help="File holding the parameter sets to search and their identifying hash value")
     parser.add_argument('--count', type=int, default=1000, help="How many parameters sets to sample [1000]")
-    parser.add_argument('--benchmark_default', type=bool, default=False, help="Whether or not to additonally run a benchmark of default parameters")
-    parser.add_argument('--benchmark_mean', type=bool, default=False, help="Whether or not to additionally run a benchmark of the mean parameters")
-    parser.add_argument('--static', type=bool, default=False, help="Whether to simply load in some parameter sets from the code")
+    parser.add_argument('--benchmark-default', action="store_true", help="Whether or not to additonally run a benchmark of default parameters")
+    parser.add_argument('--benchmark-mean', action="store_true", help="Whether or not to additionally run a benchmark of the mean parameters")
+    parser.add_argument('--static', action="store_true", help="Whether to simply load in some parameter sets from the code")
 
     args = parser.parse_args()
 
