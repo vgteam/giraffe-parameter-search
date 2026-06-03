@@ -214,6 +214,11 @@ rule manifest:
     """
     output:
         yaml = "{output}/results/{experiment}/stats/manifest.yaml"
+    threads: 1
+    resources:
+        mem_mb=200,
+        runtime=5,
+        slurm_partition=choose_partition(5)
     run:
         manifest = {
             "timestamp": datetime.datetime.now().isoformat(timespec='seconds'),
@@ -359,7 +364,7 @@ rule vg_filter:
         tsv = "{output}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.{param_set}.vg_filter_stats.tsv"
     threads: 1
     resources:
-        mem_mb=3000,
+        mem_mb=2000,
         runtime=100,
         slurm_partition=choose_partition(100)
     shell:
@@ -377,9 +382,9 @@ rule vg_stats:
         txt = "{output}/results/{experiment}/{param_set}/{tech}.{sample}.{subset}.real.{param_set}.gamstats.txt"
     threads: 1
     resources:
-        mem_mb=2000,
-        runtime=100,
-        slurm_partition=choose_partition(100)
+        mem_mb=10000,
+        runtime=90,
+        slurm_partition=choose_partition(90)
     shell:
         "vg stats -p {threads} -a {input.gam} >{output.txt}"
 
@@ -404,9 +409,9 @@ rule stats_tsv:
         temp("{output}/results/{experiment}/stats/{tech}.{sample}.{subset}.{param_set}.mapping_stats.tsv")
     threads: 1
     resources:
-        mem_mb=2000,
-        runtime=100,
-        slurm_partition=choose_partition(100)
+        mem_mb=600,
+        runtime=5,
+        slurm_partition=choose_partition(5)
     run:
         # copy from df with all paramter hashes and values, but only the row with our current parameter set
         df = params_df.loc[[wildcards.param_set]].copy()
@@ -494,6 +499,11 @@ rule stats_tsv_aggregate:
             )        
     output:
         "{output}/results/{experiment}/stats/{tech}.{sample}.{subset}.mapping_stats.tsv"
+    threads: 1
+    resources:
+        mem_mb=600,
+        runtime=5,
+        slurm_partition=choose_partition(5)
     run:
         dfs = [pd.read_csv(f, sep="\t", index_col=0) for f in input]
         pd.concat(dfs).to_csv(output[0], sep="\t", index=True)
