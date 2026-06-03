@@ -30,44 +30,58 @@ class Parameter:
         else:
             self.mean = mean
     
+    def uniform(self):
+        return np.random.randint(self.min_val, self.max_val)
+    
+    def log(self):
+        log_sample = np.random.uniform(np.log(self.min_val), np.log(self.max_val))
+        return np.exp(log_sample)
+    
+    def lognormal(self):
+        if self.mean < self.min_val or self.mean > self.max_val:
+            raise ValueError(f'Mean value of lognormal distribution ({self.mean}) cannot be outside of min/max bounds.')
+        while True:
+            ln_sample = np.random.lognormal(np.log(self.mean), 1)
+            if self.min_val <= ln_sample <= self.max_val:
+                return ln_sample
+
+    def truncated_normal(self):
+        if self.mean < self.min_val or self.mean > self.max_val:
+            raise ValueError(f'Mean value of truncated normal distribution ({self.mean}) cannot be outside of min/max bounds.')
+        mu = self.mean
+        sigma = (self.max_val - self.min_val) / 6 # adjust to control spread around mean
+        # truncations are in number of stdv from median, below converts numeric min and max into the correct format
+        # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.truncnorm.html#scipy.stats.truncnorm
+        a, b = (self.min_val - mu) / sigma, (self.max_val - mu) / sigma  
+        truncated_normal = stats.truncnorm(a, b, loc=mu, scale=sigma)
+        tn_sample = truncated_normal.rvs(size=1)[0]
+        return tn_sample
+    
     def sample(self):
         if self.min_val == self.max_val:
             return self.min_val
-        elif self.datatype=="int":
-            if self.sampling_strategy == "uniform":
-                return np.random.randint(self.min_val, self.max_val)
-            elif self.sampling_strategy == "log":
-                log_sample = np.random.uniform(np.log(self.min_val), np.log(self.max_val))
-                return int(np.exp(log_sample))
-            elif self.sampling_strategy == "lognormal":
-                ln_sample = np.random.lognormal(np.log(self.mean), 1)
-                return int(ln_sample)
-            elif self.sampling_strategy == "truncated_normal":
-                mu = self.mean
-                sigma = 1
-                truncated_normal = stats.truncnorm((self.min_val - mu) / sigma, (self.max_val - mu) / sigma, loc=mu, scale=sigma)
-                tn_sample = truncated_normal.rvs(size=1)
-                return int(tn_sample)
-            else: 
-                print("No sampling strategy " + self.sampling_strategy + " for type " + self.datatype)
-        elif self.datatype=="float":
+
+        value = -1
+        if self.sampling_strategy == "uniform":
+            value = self.uniform()
+        elif self.sampling_strategy == "log":
+            value = self.log()
+        elif self.sampling_strategy == "lognormal":
+            value = self.lognormal()
+        elif self.sampling_strategy == "truncated_normal":
+            value = self.truncated_normal()
+        else:
+            raise RuntimeError(f"Requested sampling strategy {self.sampling_strategy} not available.")
+        
+        if self.datatype == "int":
+            value = int(value)
+        elif self.datatype == "float":
             decimal_places = max(2, int(1/(self.max_val - self.min_val)))
-            if self.sampling_strategy == "uniform":
-                return round(np.random.uniform(self.min_val, self.max_val), decimal_places)
-            elif self.sampling_strategy == "log":
-                log_sample = np.random.uniform(np.log(self.min_val), np.log(self.max_val))
-                return np.exp(log_sample)
-            elif self.sampling_strategy == "lognormal":
-                ln_sample = np.random.lognormal(np.log(self.mean), 1)
-                return round(ln_sample, decimal_places)
-            elif self.sampling_strategy == "truncated_normal":
-                mu = self.mean
-                sigma = 1
-                truncated_normal = stats.truncnorm((self.min_val - mu) / sigma, (self.max_val - mu) / sigma, loc=mu, scale=sigma)
-                tn_sample = truncated_normal.rvs(size=1)
-                return round(tn_sample, decimal_places)
-            else: 
-                print("No sampling strategy " + self.sampling_strategy + " for type " + self.datatype)
+            value = round(value, decimal_places)
+        else:
+            raise RuntimeError(f"Requested datatype {self.datatype} not supported.")
+
+        return value
     
     def __repr__(self):
         return self.name + ":\n\ttype:" + self.datatype + "\n\trange: " + str(self.min_val) + "-" + str(self.max_val) + "\n\tdefault value: " + str(self.default) + "\n\tsampling strategy: " + self.sampling_strategy
