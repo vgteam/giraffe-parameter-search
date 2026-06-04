@@ -1,6 +1,5 @@
 # Config file for parameter search workflow.
-# Please read 'Customizing the config' wiki page on github for more information.
-# Link: 
+# Please read the wiki page on github for more information.
 
 reads_dir: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/reads"
 temp_dir: "/data/tmp/elewilso"

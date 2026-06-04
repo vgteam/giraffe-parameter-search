@@ -1,7 +1,6 @@
-#!/usr/bin/env python3
-
 import numpy as np
 import scipy.stats as stats
+from os import remove
 from os.path import exists
 from bidict import bidict
 import argparse
@@ -31,25 +30,40 @@ class Parameter:
             self.mean = mean
     
     def uniform(self):
+        """
+        Pick a sample from a uniform distribution bounded by min_val and max_val.
+        """
         return np.random.randint(self.min_val, self.max_val)
     
     def log(self):
+        """
+        Pick a sample from a logarithmic distribution bounded by log(min_val) and log(max_val).
+        """
         log_sample = np.random.uniform(np.log(self.min_val), np.log(self.max_val))
         return np.exp(log_sample)
     
     def lognormal(self):
+        """
+        Pick a sample from a lognormal distribution with a mean of self.mean and a standard dev of 1.
+        Resample if outside of min_val and max_val.
+        """
         if self.mean < self.min_val or self.mean > self.max_val:
             raise ValueError(f'Mean value of lognormal distribution ({self.mean}) cannot be outside of min/max bounds.')
         while True:
-            ln_sample = np.random.lognormal(np.log(self.mean), 1)
+            ln_sample = np.random.lognormal(np.log(self.mean), 1) # change stddev here!
             if self.min_val <= ln_sample <= self.max_val:
                 return ln_sample
 
     def truncated_normal(self):
+        """
+        Pick a sample from a truncated normal distribution (positive values only) with a mean of self.mean.
+        Standard deviation is defined by a transformed version of min_val and max_val.
+        Distribution is bounded by  a transformed version of min_val and max_val.
+        """
         if self.mean < self.min_val or self.mean > self.max_val:
             raise ValueError(f'Mean value of truncated normal distribution ({self.mean}) cannot be outside of min/max bounds.')
         mu = self.mean
-        sigma = (self.max_val - self.min_val) / 6 # adjust to control spread around mean
+        sigma = (self.max_val - self.min_val) / 6 # adjust stddev here!
         # truncations are in number of stdv from median, below converts numeric min and max into the correct format
         # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.truncnorm.html#scipy.stats.truncnorm
         a, b = (self.min_val - mu) / sigma, (self.max_val - mu) / sigma  
@@ -58,6 +72,9 @@ class Parameter:
         return tn_sample
     
     def sample(self):
+        """
+        Return a value randomly sampled from the distribution of choice in the correct datatype.
+        """
         if self.min_val == self.max_val:
             return self.min_val
 
@@ -115,7 +132,7 @@ get_hashes_and_parameter_strings() is a generator for returning a tuple of hash 
 get_hashes() is a generator just for the hashes
 '''
 class ParameterSearch:
-    def __init__(self, config=CONFIG_FILE, hash_to_parameters_file = HASH_TO_PARAMETERS_FILE):
+    def __init__(self, append, config=CONFIG_FILE, hash_to_parameters_file = HASH_TO_PARAMETERS_FILE):
 
         self.hash_to_parameters_file = hash_to_parameters_file
 
@@ -151,71 +168,76 @@ class ParameterSearch:
         #instead of re-hashing and losing the old results
         self.hash_to_parameters = bidict()
 
-        #Initialize the parameter file, if it doesn't already exist
-        if not exists(self.hash_to_parameters_file):
+        # check if the file for it exists already
+        file_exists = exists(self.hash_to_parameters_file)
+
+        # if we want to add more parameters, load them
+        if append and file_exists:
+            self.load_parameters_from_file()
+        else:
+            # if we want to start fresh, remove the old one
+            if not append and file_exists:
+                remove(self.hash_to_parameters_file)
+            # if we want to append but there is no file, warn
+            if append and not file_exists:
+                print(f"No previous hash_to_parameters file to append to. Creating new file.")
+            
+            # finally, make new file
             f = open(self.hash_to_parameters_file, "w")
             f.write("#hash\t" + '\t'.join(param.name for param in self.parameters))
             f.close()
-        else:
-            #If it does exist, assume that we want it and initialize with parameters from the file
-            self.load_parameters_from_file()
+        
+    def save_parameters_to_file(self):
+        """
+        Write whatever is in the hash_to_parameters bidict to the output file.
+        Bidict automatically removes repeated entries.
+        """
+        f = open(self.hash_to_parameters_file, "w")
+        f.write("#hash\t" + '\t'.join(param.name for param in self.parameters))
+        for k, v in self.hash_to_parameters.items():
+            f.write('\n' + k + '\t' + '\t'.join(str(x) for x in v))
+        f.close()
 
-    #We may have previously run a parameter search and gotten hashes for the parameters run
-    #If the hash file exists, load the parameter hashes from the file
-    #Otherwise, start an empty file with a header for the parameters we will search
     def load_parameters_from_file(self):
+        """
+        Called when --append=True.
+        Load parameter sets from the existing hash_to_parameters file,
+        and create a new file with the new parameters appended.
+        """
+        #TODO make it so that you can also remove parameters from the config but still append correctly.
 
-        f = open(self.hash_to_parameters_file)
-        
-        #First, make sure that the file really holds the correct parameters
-        header = f.readline().split()
-        assert(header[0] == "#hash")
-        
-        rewrite_param_file = False
-        for i in range(len(header)-1):
-            if header[i+1] != self.parameters[i].name:
-                # A parameter changed
-                rewrite_param_file = True
-                break
-        
-        if len(header) > len(self.parameters)+1:
-            #If we have defined more parameters than are in the file, then we need to re-write the 
-            #file to include the new parameters with the default values
-            rewrite_param_file = True
-        
-        #Get the values, filling in default values for things we missed
+        f = open(self.hash_to_parameters_file, "r")
+
+        f.readline() # skip header
         for line in f:
             l = line.split()
             new_params = tuple([(int(l[i+1]) if self.parameters[i].datatype == "int" else float(l[i+1])) if i < len(l)-1 else self.parameters[i].default for i in range(len(self.parameters))])
-
             #If there wasn't a hash value for the parameter set, then make one and rewrite everything
             hash_val = l[0]
             if hash_val == ".":
                 hash_val = self.parameter_tuple_to_hash(new_params) 
-                rewrite_param_file = True
             self.hash_to_parameters[hash_val] = new_params
+        
         f.close()
+        remove(self.hash_to_parameters_file)
         
-        if rewrite_param_file:
-        
-            f = open(self.hash_to_parameters_file, "w")
-            f.write("#hash\t" + '\t'.join(param.name for param in self.parameters) + "\n")
-            for k,v in self.hash_to_parameters:
-                f.write(k+"\t" + '\t'.join(v))
-            f.close()
+        self.save_parameters_to_file()
 
-
-
-    #Given a tuple representing a set of parameters, return the hash as a string
-    #TODO: Idk about this...
+    
     def parameter_tuple_to_hash(self, parameter_tuple):
+        """
+        Given a tuple representing a set of parameters, return the hash as a string
+        TODO: Idk about this...
+        """
         if parameter_tuple in self.hash_to_parameters.inverse:
             return self.hash_to_parameters.inverse[parameter_tuple]
         else:
             return str(abs(hash(parameter_tuple)))[:20];
         
-    #Given a tuple representing a set of parameters, return a string of options to be run in giraffe
     def parameter_tuple_to_parameter_string(self, parameter_tuple):
+        """
+        Given a tuple representing a set of parameters, return a string of options to be run in giraffe.
+        """
         assert(len(parameter_tuple) == len(self.parameters))
         param_string = ""
         for i in range(len(parameter_tuple)):
@@ -229,23 +251,25 @@ class ParameterSearch:
         return self.parameter_tuple_to_parameter_string(self.hash_to_parameters[hash_val])
 
 
-    #Sample the parameter space and write the new parameters to HASH_TO_PARAMETERS
     def sample_parameter_space(self, count, benchmark_default, benchmark_mean, static):
-        f = open(self.hash_to_parameters_file, "a")
+        """
+        Sample the parameter space and save the new parameters to HASH_TO_PARAMETERS.
+        """
 
         if benchmark_default:
             #add benchmark of default values
             benchmark_tuple = tuple(param.default for param in self.parameters)
             hash_val = self.parameter_tuple_to_hash(benchmark_tuple)
             self.hash_to_parameters[hash_val] = benchmark_tuple
-            f.write("\n" + hash_val + "\t" + '\t'.join([str(x) for x in benchmark_tuple]))
+
+            #f.write("\n" + hash_val + "\t" + '\t'.join([str(x) for x in benchmark_tuple]))
 
         if benchmark_mean:
             #add benchmark of mean values
             mean_tuple = tuple(param.mean for param in self.parameters)
             hash_val = self.parameter_tuple_to_hash(mean_tuple)
             self.hash_to_parameters[hash_val] = mean_tuple
-            f.write("\n" + hash_val + "\t" + '\t'.join([str(x) for x in mean_tuple]))
+            #f.write("\n" + hash_val + "\t" + '\t'.join([str(x) for x in mean_tuple]))
 
         if static:
             params = [
@@ -259,16 +283,14 @@ class ParameterSearch:
                 parameter_tuple = tuple(val for key, val in param.items())
                 hash_val = self.parameter_tuple_to_hash(parameter_tuple)
                 self.hash_to_parameters[hash_val] = parameter_tuple
-                f.write("\n" + hash_val + "\t" + '\t'.join([str(x) for x in parameter_tuple]))
-
         else:
             for i in range(count):
                 parameter_tuple = tuple([param.sample() for param in self.parameters])
                 hash_val = self.parameter_tuple_to_hash(parameter_tuple)
                 self.hash_to_parameters[hash_val] = parameter_tuple
-                f.write("\n" + hash_val + "\t" + '\t'.join([str(x) for x in parameter_tuple]))
+
+        self.save_parameters_to_file()
         
-        f.close()
     
     def get_hashes(self):
         hashes = []
@@ -278,8 +300,9 @@ class ParameterSearch:
 
 def main():
     parser = argparse.ArgumentParser(description="Add randomly sampled parameters to the file of parameters to search")
-    parser.add_argument('--config_file', default=CONFIG_FILE, help="Config file for which parameters to sample and how") 
-    parser.add_argument('--output_file', default=HASH_TO_PARAMETERS_FILE, help="File holding the parameter sets to search and their identifying hash value")
+    parser.add_argument('--config-file', default=CONFIG_FILE, help="Config file for which parameters to sample and how") 
+    parser.add_argument('--output-file', default=HASH_TO_PARAMETERS_FILE, help="File holding the parameter sets to search and their identifying hash value")
+    parser.add_argument('--append', action="store_true", help="Whether or not to append new parameter sets to hash_to_parameters.tsv instead of rewriting it")
     parser.add_argument('--count', type=int, default=1000, help="How many parameters sets to sample [1000]")
     parser.add_argument('--benchmark-default', action="store_true", help="Whether or not to additonally run a benchmark of default parameters")
     parser.add_argument('--benchmark-mean', action="store_true", help="Whether or not to additionally run a benchmark of the mean parameters")
@@ -287,7 +310,7 @@ def main():
 
     args = parser.parse_args()
 
-    param_search = ParameterSearch(args.config_file, args.output_file)
+    param_search = ParameterSearch(args.append, args.config_file, args.output_file)
     param_search.sample_parameter_space(args.count, args.benchmark_default, args.benchmark_mean, args.static)
 
 if __name__ == "__main__":
