@@ -1,12 +1,14 @@
 # giraffe-parameter-search
 Workflow for testing vg giraffe parameters
 
-Experiment config file config.yaml  
-Main snakefile 'Snakefile'  
-Sub-snakefile for graphing 'make_graphs.smk'  
-Graphing util 'scatter.py'  
-Parameter search util 'parameter_search.py'
-Parameter search util config file parameter_search_config.tsv
+Contents:
+* Experiment config file `config.yaml` 
+* Main snakefile `Snakefile`  
+* Sub-snakefile for graphing `make_plots.smk`  
+* Graphing util `scatter.py`  
+* Parameter search util `parameter_search.py`
+* Parameter search util config file `parameter_search_config.tsv`
+
 
 > [!NOTE]
 > **for more information, visit the Wiki tab.** 
@@ -22,12 +24,19 @@ Parameter search util config file parameter_search_config.tsv
 3. Run:
 
     ```
-    (umask 002; snakemake --configfile config.yaml --config experiment=map_hifi_10k -j128 --rerun-incomplete --use-singularity --singularity-args "-B /private" --latency-wait 120 --executor slurm --keep-going)
+    snakemake --configfile config.yaml --config experiment=my_experiment --rerun-incomplete --executor slurm --keep-going
     ```
-    Replace map_hifi_10k with experiment of choice from config.
+    Replace my_experiment with experiment of choice from config.
+
+## Dependencies 
+Have the following:
+* vg
+* pandas
+* yaml
+* scipy
+* bidict
+* matplotlib
 
 ## TODO
 - Add mismapped statistic
-- Add capability for more realness, tech, subset settings via adding more experiment options
 - Add variant calling sub snakefile
-- Add more documentation (dedicated wiki)
