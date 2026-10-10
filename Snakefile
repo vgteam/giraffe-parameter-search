@@ -29,7 +29,7 @@ supported_statistics = ["mapped", "reads_correct", "reads_incorrect", "accuracy_
 # =============================================
 
 # Parameters
-PARAM_SEARCH = parameter_search.ParameterSearch(True) #function used for converting hashes to parameter strings
+PARAM_SEARCH = parameter_search.ParameterSearch(True) #class containing methods for converting between hashes and parameter strings
 experiment = config["experiment"]
 exp_config = config["experiments"][experiment]
 
