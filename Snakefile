@@ -18,8 +18,6 @@ import subprocess
 import yaml
 import datetime
 
-configfile: "snake_config.yaml"
-
 supported_statistics = ["mapped", "reads_correct", "reads_incorrect", "accuracy_percent", "mapq60", "wrong_mapq60", "softclips", "clipped_or_unmapped", "match_bp", "speed", 
         "speed_from_log", "memory(GB)"]
 
@@ -29,14 +27,14 @@ supported_statistics = ["mapped", "reads_correct", "reads_incorrect", "accuracy_
 # =============================================
 
 # Parameters
-PARAM_SEARCH = parameter_search.ParameterSearch(True) #class containing methods for converting between hashes and parameter strings
 experiment = config["experiment"]
 exp_config = config["experiments"][experiment]
 
-params_df = pd.read_csv(config["params_file"], sep="\t", comment=None, index_col=0) #stores all information stored in params_file
+params_df = pd.read_csv(config["params_file"], sep="\t", comment=None, index_col=0, dtype={"#hash": str}) #stores all information stored in params_file
 params_df.index = params_df.index.astype(str) # we reference hashes to fill in values, but hashes in {param_set} are strings
 PARAM_SETS = [str(hash) for hash in list(params_df.index)] #list of all parameter set hashes
 
+FLAGS = parameter_search.get_parameter_flags(params_df) # dictionary of hashes and flag strings
 
 # Mapping tsv statistics
 STATS_INC = config["included_statistics"] # stats to include in mapping_stats.tsv
@@ -212,6 +210,7 @@ rule manifest:
     """
     Generates run/experiment manifest with wildcards and run information.
     """
+    localrule: True
     output:
         yaml = "{output}/results/{experiment}/stats/manifest.yaml"
     threads: 1
@@ -260,7 +259,7 @@ rule giraffe_real_reads:
         slurm_partition=choose_partition(1200),
     params:
         preset = exp_config["preset"],
-        flags = lambda wildcards: expand(PARAM_SEARCH.hash_to_parameter_string(wildcards.param_set))
+        flags = lambda wildcards: FLAGS[wildcards.param_set]
     run:
         # try block and if error throw exception print bottom of log block
         try:
@@ -296,7 +295,7 @@ rule giraffe_sim_reads:
         slurm_partition=choose_partition(600)
     params:
         preset = exp_config["preset"],
-        flags = lambda wildcards: expand(PARAM_SEARCH.hash_to_parameter_string(wildcards.param_set))
+        flags = lambda wildcards: FLAGS[wildcards.param_set]
     run:
         try:
             shell("vg giraffe -t{threads} --progress --parameter-preset {params.preset} --track-provenance --set-refpos -Z {input.gbz} -d {input.dist} -m {input.minindex} -G {input.gam} -z {input.zipfile} {params.flags} --output-format gam >{output} 2>{log}")

@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.stats as stats
+import pandas as pd
 from os import remove
 from os.path import exists
 from bidict import bidict
@@ -233,22 +234,6 @@ class ParameterSearch:
             return self.hash_to_parameters.inverse[parameter_tuple]
         else:
             return str(abs(hash(parameter_tuple)))[:20];
-        
-    def parameter_tuple_to_parameter_string(self, parameter_tuple):
-        """
-        Given a tuple representing a set of parameters, return a string of options to be run in giraffe.
-        """
-        assert(len(parameter_tuple) == len(self.parameters))
-        param_string = ""
-        for i in range(len(parameter_tuple)):
-            param_string+="--" + self.parameters[i].name
-            param_string+=" " + str(parameter_tuple[i])
-            if ( i != len(parameter_tuple)-1):
-                param_string+=" "
-        return param_string
-
-    def hash_to_parameter_string(self, hash_val):
-        return self.parameter_tuple_to_parameter_string(self.hash_to_parameters[hash_val])
 
 
     def sample_parameter_space(self, count, benchmark_default, benchmark_mean, static):
@@ -297,6 +282,39 @@ class ParameterSearch:
         for hash_val, parameter_tuple in self.hash_to_parameters.items():
             hashes.append(hash_val)
         return hashes
+
+
+
+def get_parameter_flags(df):
+    """
+    This function is a utility used by the Snakefile to get parameter flags for vg giraffe.
+
+    Input: pandas dataframe representing contents of hash_to_parameters.tsv (params_df in Snakefile)
+    Output: {hash: ["--flag value", ...]}
+
+    """
+    hash_to_flags = {}
+
+    for hash_val, row in df.iterrows():
+        flags = []
+
+        for param_name in df.columns:
+            value = row[param_name]
+
+            # skip parameters with no value for this hash
+            if pd.isna(value):
+                continue
+
+            # whole-number floats (e.g. 20000.0) become ints (20000)
+            if isinstance(value, float) and value.is_integer():
+                value = int(value)
+
+            flags.append(f"--{param_name} {value}")
+
+        hash_to_flags[str(hash_val)] = " ".join(flags)
+
+    return hash_to_flags
+
 
 def main():
     parser = argparse.ArgumentParser(description="Add randomly sampled parameters to the file of parameters to search")
