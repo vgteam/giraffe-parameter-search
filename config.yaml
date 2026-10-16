@@ -4,6 +4,10 @@
 reads_dir: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/reads"
 temp_dir: "/data/tmp/elewilso"
 params_file: "hash_to_parameters.tsv"
+
+# If True, the parameter search will append to the existing hash_to_parameters.tsv. If False, it will overwrite it.
+append: False
+
 # output directory: where your results will be generated
 # to use the current directory, leave it empty
 output: 
@@ -16,7 +20,7 @@ experiments:
     gbz_graph: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.gbz"
     distance_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.dist"
     minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.path.min"
-    zipfile: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.zipcodes" 
+    zipfile: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.path.zipcodes" 
     sample: HG002
     realness: real
     tech: hifi 
@@ -27,7 +31,7 @@ experiments:
     gbz_graph: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.gbz"
     distance_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.dist"
     minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.path.min"
-    zipfile: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.zipcodes" 
+    zipfile: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.path.zipcodes" 
     sample: HG002
     realness: real
     tech: hifi 
@@ -38,7 +42,7 @@ experiments:
     gbz_graph: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.gbz"
     distance_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.dist"
     minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.path.min"
-    zipfile: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.zipcodes" 
+    zipfile: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.path.zipcodes" 
     sample: HG002
     realness: real
     tech: hifi 
@@ -49,7 +53,7 @@ experiments:
     gbz_graph: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.gbz"
     distance_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.dist"
     minimizer_index: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.path.min"
-    zipfile: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.zipcodes" 
+    zipfile: "/private/groups/patenlab/anovak/projects/hprc/lr-giraffe/graphs/hprc-v2.1-mc-chm13-eval-sampled16o_fragmentlinked-for-real-hifi-HG002-full.k31.w50.W.path.zipcodes" 
     sample: HG002
     realness: real
     tech: hifi 
