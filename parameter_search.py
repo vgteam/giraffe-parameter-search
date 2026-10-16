@@ -34,8 +34,8 @@ class Parameter:
         """
         Pick a sample from a uniform distribution bounded by min_val and max_val.
         """
-        return np.random.randint(self.min_val, self.max_val)
-    
+        return np.random.uniform(self.min_val, self.max_val)
+
     def log(self):
         """
         Pick a sample from a logarithmic distribution bounded by log(min_val) and log(max_val).
